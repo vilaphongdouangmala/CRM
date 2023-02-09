@@ -1,0 +1,55 @@
+<div class="q-pa-lg">
+    <div class="text-h6">Add a New Quote</div>
+    <div class="text-subtitle">
+        Quote information
+    </div>
+    
+</div>
+
+@section Scripts{
+    <script>
+    var option = {
+        //data
+        data(){
+            return {
+                quote: {}
+            };
+        }
+        ,
+        //methods
+        methods:{
+            async addQuote(){
+                try{
+                    var response = await axios.post("/api/addQuote", data);
+                    console.log(response);
+                }
+                catch(error){
+                    console.log(error);
+                }
+
+            }//ef
+            
+        }//emethod
+        ,
+        //computed
+        computed:{
+
+        }
+        ,
+        //created
+        created(){
+
+        }
+        ,
+        //mounted
+        mounted(){
+            
+        }
+
+    };
+    
+    const app = Vue.createApp(option);
+    app.use(Quasar);
+    app.mount('#app');
+    </script>
+}

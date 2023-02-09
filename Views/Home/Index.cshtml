@@ -1,0 +1,100 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+</div>
+
+<div class="q-pa-md" style="max-width: 400px;">
+    <q-card class="my-card">
+        <q-card-section>
+            <div class="text-h6">Contact us</div>
+        </q-card-section>
+        <q-card-section>
+            <q-form>
+                <q-input
+                    label="First Name"
+                    v-model="lead.firstName"
+                >
+                </q-input>
+                <q-input
+                    label="Last Name"
+                    v-model="lead.lastName"
+                >
+                </q-input>
+                <q-input
+                    label="Email"
+                    class="q-mt-md"
+                    v-model="lead.email"
+                >
+                </q-input>
+                <q-btn
+                    color="secondary"
+                    label="Submit"
+                    class="q-my-lg"
+                    @@click="recordLead()"
+                >
+                </q-btn>
+            </q-form>
+        </q-card-section>
+    </q-card>
+    <q-dialog v-model="confirmationDialog">
+        <q-card>
+            <q-card-section>
+                Successfully Submitted.
+            </q-card-section>
+        </q-card>
+    </q-dialog>
+</div>
+
+
+@section Scripts {
+    <script>
+        var option = {
+            data() {
+                return {
+                    message: "Hello",
+                    list1: [
+                        {id: 1, name: "p1"}
+                    ],
+                    lead: {
+                        firstName: "",
+                        lastName: "",
+                        email: "",
+                        status: "lead",
+                    },
+                    confirmationDialog: false,
+                }//ef
+            }//edata
+            ,
+            methods: {
+                async recordLead() {
+                    var url = "/lead/addLead";
+                    console.log(this.lead);
+                    @* var setup = {
+                        method: "POST",
+                        headers: {
+                            'Content-Type':'application/json' //tell that we're going pass json format
+                        },
+                        //convert into json text
+                        body: JSON.stringify(this.lead),
+                    };
+                    var result = await fetch(url, setup);
+                    var data = await result.json(); *@
+                    axios.post(url, this.lead)
+                        .then(res => {
+                            this.confirmationDialog = true;
+                            console.log(res.data);
+                        })
+                        .catch(error => {
+                            console.log(error)
+                        });
+                }//ef
+            }//emethods
+        };
+        const app = Vue.createApp(option);
+        app.use(Quasar);
+        app.mount('#app');
+    </script>
+}

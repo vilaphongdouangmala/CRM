@@ -1,0 +1,201 @@
+<div>
+    <template v-if="currentPage === 'mainContactPage'">
+        <slot name="mainContactPage">
+            <q-table
+                :columns="contactHeaders"
+                :rows="contacts"
+                :row-key="contactId"
+                @@row-click="showSelectedContactDetails"
+            >
+                <template #top-left="props">
+                    <div class="text-h6">
+                        Contacts
+                    </div>
+                    <div class="text-subtitle">
+                        {{contacts.length}} items
+                    </div>
+                </template>
+                <template v-slot:body-cell-birthdate="props">
+                    <q-td :props="props">
+                        {{new Date(props.row.birthdate).toLocaleDateString()}}
+                    </q-td>
+                </template>
+                <template v-slot:body-cell-lastcontacteddate="props">
+                    <q-td :props="props">
+                        {{new Date(props.row.lastContactedDate).toLocaleDateString()}}
+                        {{new Date(props.row.lastContactedDate).toLocaleDateString()}}
+                    </q-td>
+                </template>
+                <template v-slot:body-cell-createddate="props">
+                    <q-td :props="props">
+                        {{new Date(props.row.createdDate).toLocaleDateString()}}
+                    </q-td>
+                </template>
+            </q-table>
+        </slot>
+    </template>
+
+    <template v-if="currentPage === 'detailPage'">
+        <slot name="detailPage">
+            <div class="q-pa-lg">
+                <q-breadcrumbs class="q-mb-md text-secondary" active-color="dark">
+                    <template v-slot:separator>
+                        <q-icon name="chevron_right" size="1.2em"></q-icon>
+                    </template>
+                    <q-breadcrumbs-el class="cursor-pointer" label="Contacts" icon="account_box" to="/" @@click="setPage('mainContactPage')"></q-breadcrumbs-el>
+                    <q-breadcrumbs-el label="Details" icon="reorder" to="/"></q-breadcrumbs-el>
+                </q-breadcrumbs>
+                <p class="text-h6">{{selectedContact.firstName}} {{selectedContact.lastName}} <span class="text-caption q-pl-md">Last Modified: {{selectedContact.modifiedDate}}</span></p>
+                <div class="row q-mb-lg">
+                    <div class="column">
+                        <span>Email</span>
+                        <span>{{selectedContact.email}}</span>
+                    </div>
+                    <div class="column q-mx-lg">
+                        <span>Phone Number</span>
+                        <span>{{selectedContact.phoneNumber}}</span>
+                    </div>
+                    <div class="column q-mx-lg">
+                        <span>Date of Birth</span>
+                        <span>{{new Date(Date.parse(selectedContact.birthdate)).toLocaleDateString()}}</span>
+                    </div>
+                    <div class="column q-mx-lg">
+                        <span>Last Contacted Date</span>
+                        <span>{{new Date(Date.parse(selectedContact.lastContactedDate)).toLocaleDateString()}}</span>
+                    </div>
+                </div>
+                <q-btn label="Edit" color="secondary" @@click="turnOnEditMode()"></q-btn>
+            </div>
+        </slot>
+    </template>
+
+    <template v-if="currentPage === 'detailEditModePage'">
+        <slot name="detailEditModePage">
+            <div class="q-pa-lg">
+                <div class="q-pt-md">
+                    <div class="q-py-lg text-h5">{{editingContact.firstName}} {{editingContact.lastName}}</div>
+                    <div style="max-width: 500px;">
+                        <div class="row q-gutter-lg q-pb-lg">
+                            <div class="col">
+                                <q-input outlined label="First Name" v-model="selectedContact.firstName"></q-input>
+                            </div>
+                            <div class="col">
+                                <q-input outlined label="Last Name" v-model="selectedContact.lastName"></q-input>
+                            </div>
+                        </div>
+                        <div class="row q-gutter-lg q-pb-lg">
+                            <div class="col">
+                                <q-input outlined label="Email" v-model="selectedContact.email"></q-input>
+                            </div>
+                        </div>
+                        <div class="row q-gutter-lg q-pb-lg">
+                            <div class="col">
+                                <q-input outlined label="Phone Number" v-model="selectedContact.phoneNumber"></q-input>
+                            </div>
+                        </div>
+                        <div class="row q-gutter-lg q-pb-lg">
+                            <div class="col">
+                                <q-input outlined label="Date of Birth" v-model="selectedContact.birthdate" mask="date" :rules="['birthdate']">
+                                    <template v-slot:append>
+                                        <q-icon name="event" class="cursor-pointer">
+                                            <q-popup-proxy transition-show="scale" transition-hide="scale">
+                                                <q-date v-model="selectedContact.birthdate"></q-date>
+                                            </q-popup-proxy>
+                                        </q-icon>
+                                    </template>
+                                </q-input>
+                            </div>
+                        </div>
+                        <q-btn class="q-px-lg float-right" color="primary" label="Save" @@click="saveContactEdit"></q-btn>
+                        <q-btn class="q-px-md q-mr-md float-right" text-color="black" color="grey-1" label="Cancel" @@click="setPage('detailPage')"></q-btn>
+                    </div>
+                </div>
+            </div>
+        </slot>
+    </template>
+</div>
+
+
+@section Scripts {
+    <script>
+        const contactColumns = [
+            {name: 'contactId', label: 'Contact ID', field: 'contactId', sortable:true, align: 'left'},
+            {name: 'firstname', label: 'First Name', field: 'firstName', sortable:true, align: 'left'},
+            {name: 'lastname', label: 'Last Name', field: 'lastName', sortable:true, align: 'left'},
+            {name: 'email', label: 'Email', field: 'email', align: 'left'},
+            {name: 'phonenumber', label: 'Phone Number', field: 'phoneNumber', align: 'left'},
+            {name: 'birthdate', label: 'Date of Birth', field: 'birthdate', align: 'left'},
+            {name: 'lastcontacteddate', label: 'Last Contacted', field: 'lastContactedDate', align: 'left'},
+            {name: 'createddate', label: 'Created Date', field: 'createdDate', align: 'left'},
+        ];
+
+        var option = {
+            data() {
+                return {
+                    contacts: [],
+                    contactHeaders: contactColumns,
+                    pages: ["mainContactPage", "detailPage", "detailEditModePage"],
+                    currentPage: "mainContactPage",
+                    //when the user click on a contact and used for modification of that clicked contact
+                    selectedContact: {},
+                    //editingContact is only created for displaying the editing contact
+                    editingContact: {}
+                }//ef
+            }//edata
+            ,
+            methods: {
+                showSelectedContactDetails(evt, row) {
+                    this.selectedContact = row;
+                    //redirect to selected contact detail page
+                    this.setPage(this.pages[1]);
+                }//ef
+                ,
+                turnOnEditMode() {
+                    //make a clone object
+                    this.editingContact = JSON.parse(JSON.stringify(this.selectedContact));
+                    //redirect to editing contact page
+                    this.setPage(this.pages[2]);
+                }//ef
+                ,
+                async saveContactEdit() {
+                    //update the datetime format
+                    this.selectedContact.birthdate = moment(this.selectedContact.birthdate).toJSON();
+                    var url = "/contact/updateContact";
+                    //send object to the server
+                    try {
+                        var res = await axios.post(url, this.selectedContact);
+                        //update object from the backend
+                        this.selectedContact = res.data.obj;
+                        console.log(this.selectedContact);
+                        //redirect back to main page
+                        this.setPage(this.pages[0]);
+                    }
+                    catch(error) {
+                        console.log(error);
+                    }
+                }//ef
+                ,
+                setPage(page) {
+                    //set the current page to be the new page passed
+                    this.currentPage = page;
+                }//ef
+                ,
+                async getAllContacts() {
+                    var url = "/contact/getAllContacts";
+                    var result = await fetch(url);
+                    var data = await result.json();
+                    this.contacts = data;
+                }//ef
+            }//emethods
+            ,
+            async created() {
+                //reload the contact data everytime the page is loaded
+                await this.getAllContacts();
+            }//emounted
+        };
+        const app = Vue.createApp(option);
+        app.use(Quasar);
+        app.use(moment);
+        app.mount('#app');
+    </script>
+}

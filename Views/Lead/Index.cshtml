@@ -1,0 +1,73 @@
+<div>
+    @* we can also use v-if *@
+    <q-table
+        :columns="leadHeaders"
+        :rows="leads"
+        :row-key="leadId"
+        @@row-click="selectLead"
+    >
+        <template #top-left="props">
+            <div class="text-h6">
+                Leads
+            </div>
+            <div class="text-subtitle">
+                {{leads.length}} items
+            </div>
+        </template>
+        <template v-slot:body-cell-createdDate="props">
+            <q-td :props="props">
+                {{new Date(props.row.createdDate).toLocaleDateString()}}
+            </q-td>
+        </template>
+    </q-table>
+</div>
+
+@section Scripts {
+    <script>
+        const leadColumns = [
+            {name: 'leadId', label: 'Lead ID', field: 'leadId', sortable:true, align: 'left'},
+            {name: 'firstname', label: 'First Name', field: 'firstName', sortable:true, align: 'left'},
+            {name: 'lastname', label: 'Last Name', field: 'lastName', sortable:true, align: 'left'},
+            {name: 'email', label: 'Email', field: 'email', align: 'left'},
+            {name: 'createdDate', label: 'Date', field: 'createdDate', sortable:true, align: 'left'},
+        ];
+
+        var option = {
+            data() {
+                return {
+                    leadHeaders: leadColumns,
+                    leads: [],
+                    selectedLead: null,
+                }//ef
+            }//edata
+            ,
+            methods: {
+                async selectLead(evt, row) {
+                    var url = "/lead/selectLead";
+                    var setup = {
+                        method: "POST",
+                        headers: {
+                            'Content-Type':'application/json' //tell that we're going pass json format
+                        },
+                        body: JSON.stringify(row),
+                    };
+                    var result = await fetch(url, setup);
+                    var data = await result.json();
+                    window.location.href = '@Url.Action("Details", "Lead")';
+
+                    //axios
+                }//ef
+            }//emethods
+            ,
+            async mounted() {
+                var url = "lead/getallleads";
+                var result = await fetch(url);
+                var data = await result.json();
+                this.leads = data;
+            }//emounted
+        };
+        const app = Vue.createApp(option);
+        app.use(Quasar);
+        app.mount('#app');
+    </script>
+}

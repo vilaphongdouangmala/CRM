@@ -1,0 +1,264 @@
+<div>
+    <template v-if="currentPage === 'mainOpportunityPage'">
+        <slot name="mainOpportunityPage">
+            <q-table
+                :columns="opportunityHeaders"
+                :rows="opportunities"
+                :row-key="opportunityId"
+                @@row-click="showSelectedOpportunityDetails"
+            >
+                <template #top-left="props">
+                    <div class="text-h6">
+                        Opportunities
+                    </div>
+                    <div class="text-subtitle">
+                        {{opportunities.length}} items
+                    </div>
+                </template>
+            </q-table>
+        </slot>
+    </template>
+
+    <template v-if="currentPage === 'detailPage'">
+        <slot name="detailPage">
+            <div class="q-pa-lg">
+                <q-breadcrumbs class="q-mb-md text-secondary" active-color="dark">
+                    <template v-slot:separator>
+                        <q-icon name="chevron_right" size="1.2em"></q-icon>
+                    </template>
+                    <q-breadcrumbs-el class="cursor-pointer" label="Opportunities" icon="account_box" to="/" @@click="setPage('mainOpportunityPage')"></q-breadcrumbs-el>
+                    <q-breadcrumbs-el label="Details" icon="reorder" to="/"></q-breadcrumbs-el>
+                </q-breadcrumbs>
+                <p class="text-h6">{{selectedOpportunity.opportunityName}} <span class="text-caption q-pl-md">Last Modified: {{selectedOpportunity.modifiedDate}}</span></p>
+                <div class="row q-mb-md">
+                    <div class="column">
+                        <span>Status</span>
+                        <span>{{selectedOpportunity.status}}</span>
+                    </div>
+                </div>
+                <q-btn label="Edit" color="secondary" @@click="turnOnEditMode()"></q-btn>
+                <div class="q-py-lg" style="width: 900px;">
+                    @* <q-table
+                        :columns="quotesHeaders"
+                        :rows="quotes"
+                        :row-key=""
+                        @@row-click=""
+                    >
+                        <template #top-left="props">
+                            <div class="text-h6">
+                                Quotes
+                            </div>
+                            <div class="text-subtitle">
+                                {{quotes.length}} items
+                            </div>
+                        </template>
+                    </q-table> *@
+                    <div class="row q-mb-sm items-center">
+                        <div class="text-h6">Quotes</div>
+                        <q-btn color="secondary" icon="add" flat label="New" @@click="activateNewQuoteDialog"></q-btn>
+                    </div>
+                    <q-list bordered>
+                        <q-item class="text-bold">
+                            <q-item-section>Quote Name</q-item-section>
+                            <q-item-section>Created Date</q-item-section>
+                            <q-item-section>Amount</q-item-section>
+                            <q-item-section>Status</q-item-section>
+                        </q-item>
+                        <q-item clickable v-for="quote in quotes">
+                            <q-item-section>quote.quoteName</q-item-section>
+                            <q-item-section>quote.amount</q-item-section>
+                            <q-item-section>quote.status</q-item-section>
+                            <q-item-section>quote.createdDate</q-item-section>
+                        </q-item>
+                    </q-list>
+                </div>
+            </div>
+        </slot>
+    </template>
+
+    <template v-if="currentPage === 'detailEditModePage'">
+        <slot name="detailEditModePage">
+           
+        </slot>
+    </template>
+    
+    <q-dialog v-model="addQuoteDialog" max-width="1500px">
+        <q-card class="q-pa-lg" style="max-width: 1200px;">
+            <q-card-section align="left">
+                <div class="text-h6">New Quote</div>
+            </q-card-section>
+            <q-card-section>
+                <div class="row q-col-gutter-xl">
+                    <div class="col-6">
+                        <q-input class="q-mb-md" color="secondary" outlined label="Quote name" v-model="newQuote.quoteName" type="text"></q-input>
+                    </div>
+                    <div class="col-6">
+                        <q-select color="secondary" outlined v-model="newQuote.quoteStatus" :options="quoteStatuses" option-value="quoteStatusId" option-label="statusName"></q-select>
+                    </div>
+                </div>
+                <div class="row q-col-gutter-xl">
+                    <div class="col-6">
+                        <q-input class="q-mb-md" color="secondary" disable outlined label="Opprtunity name" v-model="newQuote.opportunity.opportunityName" type="text"></q-input>
+                    </div>
+                    <div class="col-6">
+                        <q-input color="secondary" outlined label="Expiration Date" v-model="newQuote.expirationDate" mask="date" :rules="['newQuote.expirationDate']">
+                            <template v-slot:append>
+                                <q-icon name="event" class="cursor-pointer">
+                                    <q-popup-proxy transition-show="scale" transition-hide="scale">
+                                        <q-date color="secondary" v-model="newQuote.expirationDate"></q-date>
+                                    </q-popup-proxy>
+                                </q-icon>
+                            </template>
+                        </q-input>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <q-input class="q-mb-md" color="secondary" outlined label="Description" v-model="newQuote.description" type="textarea"></q-input>
+                    </div>
+                </div>
+            </q-card-section>
+            <q-card-section align="right">
+                <q-btn label="Save" color="secondary" @@click=""></q-btn>
+            </q-card-section>
+        </q-card>
+    </q-dialog>
+</div>
+
+
+@section Scripts {
+    <script>
+        //this is the q-table column headers
+        const opportunityColumns = [
+            {
+                name: 'opportunityName',
+                label: 'Opportunity Name',
+                field: 'opportunityName',
+                align: 'left'
+            },
+            {
+                name: 'status',
+                label: 'Status',
+                field: 'status',
+                align: 'left'
+            },
+            {
+                name: 'amount',
+                label: 'Amount',
+                field: 'amount',
+                align: 'left'
+            },
+            {
+                name: 'createdDate',
+                label: 'Created Date',
+                field: 'createdDate',
+                align: 'left'
+            },
+            {
+                name: 'modifiedDate',
+                label: 'Modified Date',
+                field: 'modifiedDate',
+                align: 'left'
+            }
+            
+        ];
+
+        var option = {
+            data() {
+                return {
+                    opportunities: [],
+                    opportunityHeaders: opportunityColumns,
+                    pages: ["mainOpportunityPage", "detailPage", "detailEditModePage"],
+                    currentPage: "mainOpportunityPage",
+                    //when the user click on a contact and used for modification of that clicked contact
+                    selectedOpportunity: {},
+                    //editingOpportunity is only created for displaying the editing contact
+                    editingOpportunity: {},
+                    //---the following are information about quotes---
+                    quotes: [],
+                    quotesHeaders: [],
+                    quoteStatuses: [],
+                    //-add new quote section-
+                    addQuoteDialog: false,
+                    newQuote: {
+                        quoteName: "",
+                        description: "",
+                        quoteStatus: {},
+                        expirationDate: "",
+                        opportunity: {}
+                    }
+                }//ef
+            }//edata
+            ,
+            methods: {
+                setPage(page) {
+                    //set the current page to be the new page passed
+                    this.currentPage = page;
+                }//ef
+                ,
+                async getAllOpportunities() {
+                    var url = "/api/getallopportunities";
+                    //get from server
+                    axios.get(url)
+                        .then(res => {
+                            //get the data from the server
+                            this.opportunities = res.data;
+                        })
+                        .catch(error => {
+                            console.log(error);
+                        });
+                }//ef
+                ,
+                showSelectedOpportunityDetails(evt, row) {
+                    //set selectedOpportunity for showing in the details page
+                    this.selectedOpportunity = row;
+                    //change page
+                    this.setPage(this.pages[1]);
+                }//ef
+                ,
+                async activateNewQuoteDialog() {
+                    console.log(this.selectedOpportunity);
+                    //assign selectedOpportunity to the newQuote object
+                    this.newQuote.opportunity = { ...this.selectedOpportunity };
+                    //get new quote selections
+                    await this.getNewQuoteSelections();
+                    //set default value for selections
+                    this.newQuote.quoteStatus = this.quoteStatuses.length > 0 ? this.quoteStatuses[0] : null;
+                    //activate dialog
+                    this.addQuoteDialog = true;
+                }
+                ,
+                async getNewQuoteSelections() {
+                    var url = "/api/getNewQuoteSelections";
+                    await axios.get(url)
+                        .then(res => {
+                            this.quoteStatuses = res.data.statuses;
+                        })
+                        .catch(error => {
+                            console.log(error);
+                        });
+                }
+                ,
+                async addNewQuote(opportunity) {
+                    var url = "/api/addQuote";
+                    await axios.post(url, this.newQuote)
+                        .then(res => {
+                            console.log(res.data);
+                        })
+                        .catch(error => {
+                            console.log(error);
+                        });
+                }//ef
+            }//emethods
+            ,
+            async created() {
+                //firstly we load all the opportunities from the server
+                await this.getAllOpportunities();
+            }//emounted
+        };
+        const app = Vue.createApp(option);
+        app.use(Quasar);
+        app.use(moment);
+        app.mount('#app');
+    </script>
+}

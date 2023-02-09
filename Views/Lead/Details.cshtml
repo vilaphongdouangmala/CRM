@@ -1,0 +1,134 @@
+<div class="q-pa-lg">
+    <q-breadcrumbs class="q-mb-md text-secondary" active-color="dark">
+        <template v-slot:separator>
+            <q-icon name="chevron_right" size="1.2em"></q-icon>
+        </template>
+        <q-breadcrumbs-el class="cursor-pointer" label="Leads" icon="accessibility" to="/" @@click="redirectToLeadsPage"></q-breadcrumbs-el>
+        <q-breadcrumbs-el label="Details" icon="reorder" to="/"></q-breadcrumbs-el>
+    </q-breadcrumbs>
+    
+    <p class="text-h6">{{selectedLead.firstName}} {{selectedLead.lastName}}</p>
+    <div class="row">
+        <div class="column">
+            <span>Email</span>
+            <span>{{selectedLead.email}}</span>
+        </div>
+        <div class="column q-mx-lg">
+            <span>Date</span>
+            <span>{{selectedLead.createdDate}}</span>
+        </div>
+        <div class="column">
+            <span>Status</span>
+            <span>{{selectedLead.source}}</span>
+        </div>
+    </div>
+    <q-btn class="q-my-lg" label="Convert" color="secondary" @@click="showConvertDialog()"></q-btn>
+    @* Convert Dialog *@
+    <q-dialog v-model="convertDialog">
+        <q-card class="q-pa-lg">
+            <q-card-section>
+                <div class="text-h6">{{selectedLead.firstName}} {{selectedLead.lastName}}</div>
+            </q-card-section>
+            @* <q-card-section class="q-pt-none">
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Aliquam, voluptatum error similique doloribus officiis fuga laudantium velit nemo delectus nihil officia, dolorem repudiandae, quod id nesciunt voluptatibus non eos deleniti!
+            </q-card-section> *@
+            <q-toggle v-model="convertContact" label="Convert to Contact" color="secondary"></q-toggle><br>
+            <q-toggle v-model="convertAccount" label="Convert to Account" color="secondary"></q-toggle><br>
+            <q-toggle v-model="convertOpportunity" label="Convert to Opportunity" color="secondary"></q-toggle>
+            <q-input class="q-mb-md" dense outlined placeholder="Opportunity name" v-model="opportunityName" type="text"></q-input>
+            <q-card-section align="right">
+                <q-btn label="Convert" color="secondary" @@click="convertLead()"></q-btn>
+            </q-card-section>
+        </q-card>
+    </q-dialog>
+    @* Confirmation Dialog *@
+    <q-dialog v-model="alertDialog" class="text-center">
+        <q-card class="q-py-md q-px-xl">
+            <q-card-section>
+                <q-icon color="green" name="las la-check-circle" size="xl"></q-icon>
+            </q-card-section>
+            <q-card-section>
+                Successfully Converted
+            </q-card-section>
+        </q-card>
+    </q-dialog>
+</div>
+
+
+@section Scripts {
+    <script>
+        var option = {
+            data() {
+                return {
+                    selectedLead: {},
+                    //variables to trigger dialogs
+                    convertDialog: false,
+                    alertDialog: false,
+                    alertMessage: "",
+                    //variables in converting dialog
+                    convertContact: false,
+                    convertAccount: false,
+                    convertOpportunity: false,
+                    opportunityName: ""
+                }//ef
+            }//edata
+            ,
+            methods: {
+                showConvertDialog() {
+                    this.convertDialog = true;
+                }//ef
+                ,
+                async convertLead() {
+                    //check what user would like to convert
+                    if (this.convertContact) {
+                        await this.convertLeadToContact();
+                    }
+                    if (this.convertOpportunity) {
+                        console.log(this.opportunityName);
+                        await this.convertLeadToOpportunity(this.opportunityName);
+                    }
+                    //pop the confirmation dialog
+                    this.alertDialog = true
+                    //close the convert dialog at the end
+                    this.convertDialog = false;
+                }//ef
+                ,
+                async convertLeadToContact() {
+                    var url = "/lead/convertLeadToContact";
+                    var result = await fetch(url);
+                    var data = await result.json();
+                    console.log(data);
+                }//ef
+                ,
+                convertLeadToOpportunity(name) {
+                    var url = "/lead/convertLeadToOpportunity";
+                    console.log("convert fuction " + name);
+                    //post the opportunity name to the server and the server can take the selectedLead at the server side to convert to the opportunity
+                    //single variable needs to be sent in terms of an object
+                    axios.post(url, { opportunityName: name })
+                        .then(res => {
+                            console.log(res.data);
+                        })
+                        .catch(error => {
+                            console.log(error);
+                        });
+                }//ef
+                ,
+                redirectToLeadsPage() {
+                    location.href='@Url.Action("Index", "Lead")';
+                }//ef
+            }//emethods
+            ,
+            async mounted() {
+                var url = "/lead/getSelectedLead";
+                var result = await fetch(url);
+                var data = await result.json();
+                this.selectedLead = data;
+                console.log(this.selectedLead);
+            }//emounted
+        };
+        const app = Vue.createApp(option);
+        app.use(Quasar);
+        app.mount('#app');
+    </script>
+}
